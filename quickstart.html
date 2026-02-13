@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Start - Open OTK</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold" href="index.html">
+                <i class="bi bi-box-seam"></i> Open OTK
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="installation.html">Installation</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="quickstart.html">Quick Start</a></li>
+                    <li class="nav-item"><a class="nav-link" href="api.html">API</a></li>
+                    <li class="nav-item"><a class="nav-link" href="examples.html">Examples</a></li>
+                    <li class="nav-item"><a class="nav-link" href="https://github.com/aiextension/open-otk" target="_blank"><i class="bi bi-github"></i> GitHub</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container content-section">
+        <div class="row">
+            <div class="col-lg-3">
+                <div class="sidebar">
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#basic-usage">Basic Usage</a>
+                        <a class="nav-link" href="#chat-session">Chat Session</a>
+                        <a class="nav-link" href="#streaming">Streaming</a>
+                        <a class="nav-link" href="#model-management">Model Management</a>
+                        <a class="nav-link" href="#thinking-models">Thinking Models</a>
+                        <a class="nav-link" href="#customization">Customization</a>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="col-lg-9">
+                <h1 class="mb-4">Quick Start Guide</h1>
+                <p class="lead">Learn the basics of Open OTK in minutes</p>
+
+                <section id="basic-usage">
+                    <h2>Basic Usage</h2>
+                    <p>Generate text with any Ollama model:</p>
+                    <pre class="bg-dark text-light p-3 rounded"><code>from otk import OllamaClient
+
+client = OllamaClient()
+response = client.generate("llama2", "Tell me a joke")
+print(response)</code></pre>
+                </section>
+
+                <section id="chat-session">
+                    <h2>Chat Session</h2>
+                    <p>Maintain conversation context:</p>
+                    <pre class="bg-dark text-light p-3 rounded"><code>from otk import ChatSession
+
+session = ChatSession(
+    model="llama2",
+    system_message="You are a helpful assistant",
+    temperature=0.7
+)
+
+response = session.send("Hello!")
+print(response)
+
+response = session.send("What's the weather like?")
+print(response)
+
+# View history
+history = session.get_history()
+print(f"Total messages: {len(history)}")</code></pre>
+                </section>
+
+                <section id="streaming">
+                    <h2>Streaming Responses</h2>
+                    <p>Get real-time streaming output:</p>
+                    <pre class="bg-dark text-light p-3 rounded"><code>from otk import OllamaClient
+
+client = OllamaClient()
+
+print("Response: ", end="")
+for chunk in client.stream_generate("llama2", "Write a story"):
+    print(chunk, end='', flush=True)
+print()</code></pre>
+
+                    <h3>Stream with Chat Session</h3>
+                    <pre class="bg-dark text-light p-3 rounded"><code>from otk import ChatSession
+
+session = ChatSession("llama2")
+
+for chunk in session.send_stream("Tell me more"):
+    print(chunk, end='', flush=True)</code></pre>
+                </section>
+
+                <section id="model-management">
+                    <h2>Model Management</h2>
+                    <pre class="bg-dark text-light p-3 rounded"><code>from otk import ModelManager
+
+manager = ModelManager()
+
+# List installed models
+models = manager.list_models()
+for model in models:
+    print(f"{model['name']} - {model['size']}")
+
+# Install a model
+manager.pull_model("mistral")
+
+# Check if model exists
+if manager.model_exists("llama2"):
+    print("✓ Model ready!")
+
+# Get model info
+info = manager.show_model_info("llama2")
+print(info)</code></pre>
+                </section>
+
+                <section id="thinking-models">
+                    <h2>Working with Thinking Models</h2>
+                    <p>Automatically handle DeepSeek-R1, Qwen, and other models with reasoning:</p>
+                    <pre class="bg-dark text-light p-3 rounded"><code>from otk import ChatSession
+
+# Automatic response processing
+session = ChatSession("deepseek-r1:8b", auto_process=True)
+response = session.send("Solve 234 + 567")
+print(response)  # Clean answer
+
+# Access reasoning
+thinking = session.get_last_thinking()
+if thinking:
+    print(f"\nModel's reasoning:\n{thinking}")</code></pre>
+
+                    <h3>Manual Cleaning</h3>
+                    <pre class="bg-dark text-light p-3 rounded"><code>from otk import clean_thinking_tags, ModelResponseHandler, ModelType
+
+# Simple cleaning
+clean_text, thinking = clean_thinking_tags(raw_response)
+
+# Advanced handling
+handler = ModelResponseHandler(ModelType.THINKING)
+processed = handler.process(raw_response)
+print(processed.content)
+print(processed.thinking)
+print(processed.metadata)</code></pre>
+                </section>
+
+                <section id="customization">
+                    <h2>Customization</h2>
+                    <p>Build customized models with hooks and processors:</p>
+                    <pre class="bg-dark text-light p-3 rounded"><code>from otk import ModelBuilder, HookType
+
+model = (ModelBuilder("llama2")
+         .with_preset("creative")
+         .with_temperature(0.85)
+         .with_hook(HookType.POST_PROCESS, my_logger)
+         .build())
+
+response = model.generate("Write a poem")</code></pre>
+
+                    <h3>Experimentation</h3>
+                    <pre class="bg-dark text-light p-3 rounded"><code>from otk import ModelExperiment
+
+experiment = ModelExperiment()
+
+# Compare multiple models
+result = experiment.compare_models(
+    models=["llama2", "mistral"],
+    prompt="Explain quantum computing"
+)
+experiment.print_comparison(result)</code></pre>
+                </section>
+
+                <div class="alert alert-info mt-4">
+                    <i class="bi bi-lightbulb"></i> <strong>Tip:</strong> Check out the <a href="examples.html">Examples</a> page for more real-world use cases!
+                </div>
+
+                <div class="mt-5">
+                    <a href="api.html" class="btn btn-primary">
+                        Next: API Reference <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-dark text-light py-4 mt-5">
+        <div class="container text-center">
+            <p class="mb-0">&copy; 2026 Open OTK. Licensed under MIT License.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
+</body>
+</html>
